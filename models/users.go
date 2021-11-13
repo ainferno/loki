@@ -11,6 +11,7 @@ type User struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
+	Token    string `json:"token"`
 }
 
 type Users struct {
@@ -23,6 +24,12 @@ func NewUsers(db *gorm.DB) *Users {
 
 func (u *Users) Find(users *[]User) error {
 	result := u.db.Find(&users)
+	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
+	return result.Error
+}
+
+func (u *Users) FindByEmail(user *User, email string) error {
+	result := u.db.Where("email = ?", email).First(&user)
 	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
 	return result.Error
 }

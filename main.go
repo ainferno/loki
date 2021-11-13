@@ -36,6 +36,8 @@ func main() {
 	sm := mux.NewRouter()
 
 	userHandlers := handlers.NewUserHandlers(db, validate)
+	authHandlers := handlers.NewAuthHandlers(db)
+
 	apiRouter := sm.PathPrefix("/api").Subrouter()
 
 	apiRouter.HandleFunc("/users", userHandlers.Index).Methods(http.MethodGet)
@@ -43,6 +45,8 @@ func main() {
 	apiRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Show).Methods(http.MethodGet)
 	apiRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Delete).Methods(http.MethodDelete)
 	apiRouter.HandleFunc("/users/{id:[0-9]+}/update", userHandlers.Update).Methods(http.MethodPut)
+
+	apiRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
 
 	pagesHandlers := handlers.NewPagesHandlers()
 	pagesRouter := sm.Methods(http.MethodGet).Subrouter()
