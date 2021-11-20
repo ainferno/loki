@@ -9,11 +9,12 @@ import (
 	"os/signal"
 	"time"
 
+	"loki/handlers"
+
 	"github.com/go-playground/validator"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/mwazovzky/loki/handlers"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
