@@ -21,19 +21,16 @@ type UserLogin struct {
 	Password string
 }
 
-type Token struct {
-	Value string
-}
-
 func NewAuthHandlers(db *gorm.DB) *AuthHandlers {
 	users := models.NewUsers(db)
 	return &AuthHandlers{users}
 }
 
+// curl -X POST localhost:3000/api/login -d '{"email":"vasya@example.com","password":"secret"}'
 func (ah *AuthHandlers) Login(rw http.ResponseWriter, r *http.Request) {
 	log.Println("Auth Login Request")
 
-	userLogin := models.User{}
+	userLogin := UserLogin{}
 	err := json.NewDecoder(r.Body).Decode(&userLogin)
 	if err != nil {
 		http.Error(rw, "Unable to read request data", http.StatusBadRequest)
@@ -53,18 +50,13 @@ func (ah *AuthHandlers) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userLogin.Password != user.Password {
-		http.Error(rw, "Wrong emain or password", http.StatusBadRequest)
-		return
-	}
-
-	tokenValue, err := generateToken()
+	token, err := generateToken()
 	if err != nil {
 		http.Error(rw, "Can't generate token", http.StatusInternalServerError)
 		return
 	}
-	token := Token{tokenValue}
-	user.Token = token.Value
+
+	user.Token = token
 
 	err = ah.users.Update(&user, user.ID)
 	if err != nil {
@@ -73,7 +65,7 @@ func (ah *AuthHandlers) Login(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	e := json.NewEncoder(rw)
-	err = e.Encode(token)
+	err = e.Encode(user)
 	if err != nil {
 		http.Error(rw, "Unable to marshall json", http.StatusInternalServerError)
 	}
