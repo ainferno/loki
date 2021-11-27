@@ -70,3 +70,9 @@ func (u *Users) Delete(user *User, id int) error {
 	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
 	return result.Error
 }
+
+func (u *Users) DeleteToken(token string) error {
+	result := u.db.Table("users").Where("token = ?", token).Select("token").Updates(map[string]interface{}{"token": nil})
+	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
+	return result.Error
+}

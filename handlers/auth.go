@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"loki/models"
 
@@ -69,6 +70,26 @@ func (ah *AuthHandlers) Login(rw http.ResponseWriter, r *http.Request) {
 
 	e := json.NewEncoder(rw)
 	err = e.Encode(user)
+	if err != nil {
+		http.Error(rw, "Unable to marshall json", http.StatusInternalServerError)
+	}
+}
+
+func (ah *AuthHandlers) Logout(rw http.ResponseWriter, r *http.Request) {
+	log.Println("Auth Logout Request")
+
+	authHeader := r.Header.Get("Authorization")
+	auth := strings.Split(authHeader, " ")
+	token := auth[1]
+
+	err := ah.users.DeleteToken(token)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	e := json.NewEncoder(rw)
+	err = e.Encode("success")
 	if err != nil {
 		http.Error(rw, "Unable to marshall json", http.StatusInternalServerError)
 	}
