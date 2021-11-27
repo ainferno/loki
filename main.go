@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"loki/handlers"
+	"loki/middleware"
 
 	"github.com/go-playground/validator"
 	gohandlers "github.com/gorilla/handlers"
@@ -38,20 +39,24 @@ func main() {
 
 	userHandlers := handlers.NewUserHandlers(db, validate)
 	authHandlers := handlers.NewAuthHandlers(db)
+	dashboardHandlers := handlers.NewDashboardHandlers(db)
 
-	apiRouter := sm.PathPrefix("/api").Subrouter()
+	userRouter := sm.PathPrefix("/api").Subrouter()
+	userRouter.HandleFunc("/users", userHandlers.Index).Methods(http.MethodGet)
+	userRouter.HandleFunc("/users", userHandlers.Create).Methods(http.MethodPost)
+	userRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Show).Methods(http.MethodGet)
+	userRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Delete).Methods(http.MethodDelete)
+	userRouter.HandleFunc("/users/{id:[0-9]+}/update", userHandlers.Update).Methods(http.MethodPut)
 
-	apiRouter.HandleFunc("/users", userHandlers.Index).Methods(http.MethodGet)
-	apiRouter.HandleFunc("/users", userHandlers.Create).Methods(http.MethodPost)
-	apiRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Show).Methods(http.MethodGet)
-	apiRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Delete).Methods(http.MethodDelete)
-	apiRouter.HandleFunc("/users/{id:[0-9]+}/update", userHandlers.Update).Methods(http.MethodPut)
+	authRouter := sm.PathPrefix("/api").Subrouter()
+	authRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
 
-	apiRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
+	dashboardRouter := sm.PathPrefix("/api").Subrouter()
+	dashboardRouter.HandleFunc("/dashboard", dashboardHandlers.Index).Methods(http.MethodGet)
+	dashboardRouter.Use(middleware.Authorization(db))
 
 	pagesHandlers := handlers.NewPagesHandlers()
 	pagesRouter := sm.Methods(http.MethodGet).Subrouter()
-
 	pagesRouter.HandleFunc("/", pagesHandlers.Home)
 
 	// CORS
