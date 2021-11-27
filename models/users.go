@@ -34,6 +34,12 @@ func (u *Users) FindByEmail(user *User, email string) error {
 	return result.Error
 }
 
+func (u *Users) FindByToken(user *User, token string) error {
+	result := u.db.Where("token = ?", token).First(&user)
+	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
+	return result.Error
+}
+
 func (u *Users) First(user *User, id int) error {
 	result := u.db.First(user, id)
 	fmt.Println("RowsAffected:", result.RowsAffected, "ERROR", result.Error)
