@@ -38,7 +38,7 @@ func main() {
 	sm := mux.NewRouter()
 
 	userHandlers := handlers.NewUserHandlers(db, validate)
-	authHandlers := handlers.NewAuthHandlers(db)
+	authHandlers := handlers.NewAuthHandlers(db, validate)
 	dashboardHandlers := handlers.NewDashboardHandlers(db)
 
 	userRouter := sm.PathPrefix("/api").Subrouter()
@@ -50,6 +50,7 @@ func main() {
 
 	authRouter := sm.PathPrefix("/api").Subrouter()
 	authRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
+	authRouter.HandleFunc("/register", authHandlers.Register).Methods(http.MethodPost)
 
 	dashboardRouter := sm.PathPrefix("/api").Subrouter()
 	dashboardRouter.HandleFunc("/dashboard", dashboardHandlers.Index).Methods(http.MethodGet)

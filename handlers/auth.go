@@ -10,11 +10,13 @@ import (
 
 	"loki/models"
 
+	"github.com/go-playground/validator"
 	"gorm.io/gorm"
 )
 
 type AuthHandlers struct {
-	users *models.Users
+	users    *models.Users
+	validate *validator.Validate
 }
 
 type UserLogin struct {
@@ -22,9 +24,9 @@ type UserLogin struct {
 	Password string
 }
 
-func NewAuthHandlers(db *gorm.DB) *AuthHandlers {
+func NewAuthHandlers(db *gorm.DB, v *validator.Validate) *AuthHandlers {
 	users := models.NewUsers(db)
-	return &AuthHandlers{users}
+	return &AuthHandlers{users, v}
 }
 
 // curl -X POST localhost:3000/api/login -d '{"email":"vasya@example.com","password":"secret"}'
@@ -72,6 +74,40 @@ func (ah *AuthHandlers) Login(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (ah *AuthHandlers) Register(rw http.ResponseWriter, r *http.Request) {
+	log.Println("Users Create Request")
+
+	newUser := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&newUser)
+	if err != nil {
+		http.Error(rw, "Missing data", http.StatusBadRequest)
+		return
+	}
+
+	err = ah.validateUser(&newUser)
+	if err != nil {
+		http.Error(rw, "Validation", http.StatusUnprocessableEntity)
+		return
+	}
+
+	var user models.User
+	err = ah.users.FindByEmail(&user, newUser.Email)
+	if err == nil {
+		http.Error(rw, "User with this email already exists", http.StatusBadRequest)
+		return
+	}
+
+	ah.users.Create(&newUser)
+
+	rw.Header().Add("Content-Type", "application/json")
+
+	e := json.NewEncoder(rw)
+	err = e.Encode(newUser)
+	if err != nil {
+		http.Error(rw, "Unable to marshall json", http.StatusInternalServerError)
+	}
+}
+
 func generateToken() (string, error) {
 	length := 10
 
@@ -87,4 +123,25 @@ func verifyPassword(password string, userPassword string) error {
 		return errors.New("wrong emain or password")
 	}
 	return nil
+}
+
+func (ah *AuthHandlers) validateUser(user *models.User) error {
+	err := ah.validate.Struct(user)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			log.Println("Validation error")
+			log.Println(err.Namespace())
+			log.Println(err.Field())
+			log.Println(err.StructNamespace())
+			log.Println(err.StructField())
+			log.Println(err.Tag())
+			log.Println(err.ActualTag())
+			log.Println(err.Kind())
+			log.Println(err.Type())
+			log.Println(err.Value())
+			log.Println(err.Param())
+		}
+	}
+
+	return err
 }
