@@ -8,7 +8,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mwazovzky/loki/models"
+	"loki/models"
+
 	"gorm.io/gorm"
 )
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
-	"github.com/mwazovzky/loki/models"
 	"gorm.io/gorm"
+	"loki/models"
 )
 
 type UserHandlers struct {
