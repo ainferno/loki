@@ -47,6 +47,7 @@ func main() {
 	userRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Show).Methods(http.MethodGet)
 	userRouter.HandleFunc("/users/{id:[0-9]+}", userHandlers.Delete).Methods(http.MethodDelete)
 	userRouter.HandleFunc("/users/{id:[0-9]+}/update", userHandlers.Update).Methods(http.MethodPut)
+	userRouter.Use(middleware.Authorization(db))
 
 	authRouter := sm.PathPrefix("/api").Subrouter()
 	authRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
