@@ -49,9 +49,13 @@ func main() {
 	userRouter.HandleFunc("/users/{id:[0-9]+}/update", userHandlers.Update).Methods(http.MethodPut)
 	userRouter.Use(middleware.Authorization(db))
 
-	authRouter := sm.PathPrefix("/api").Subrouter()
-	authRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
-	authRouter.HandleFunc("/register", authHandlers.Register).Methods(http.MethodPost)
+	authUnprotectedRouter := sm.PathPrefix("/api").Subrouter()
+	authUnprotectedRouter.HandleFunc("/login", authHandlers.Login).Methods(http.MethodPost)
+	authUnprotectedRouter.HandleFunc("/register", authHandlers.Register).Methods(http.MethodPost)
+
+	authProtectedRouter := sm.PathPrefix("/api").Subrouter()
+	authProtectedRouter.HandleFunc("/logout", authHandlers.Logout).Methods(http.MethodPost)
+	authProtectedRouter.Use(middleware.Authorization(db))
 
 	dashboardRouter := sm.PathPrefix("/api").Subrouter()
 	dashboardRouter.HandleFunc("/dashboard", dashboardHandlers.Index).Methods(http.MethodGet)
