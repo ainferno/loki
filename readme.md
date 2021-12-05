@@ -1,22 +1,28 @@
 # Loki
 
-## Create users table
+## Start mysql service
 
-```sql
-CREATE TABLE users  (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
-    email VARCHAR(255),
-    password VARCHAR(255),
-    token VARCHAR(255)
-);
+```
+docker compose up -d mysql
 ```
 
-## Seed users
+## Start go app locally
 
-```sql
-INSERT INTO users (name, email, password) VALUES
-("Mary", "mary@example.com", "secret"),
-("Vasya", "vasya@example.com", "secret"),
-("Alex", "alex@example.com", "secret");
+```
+go run main.go
+```
+
+## Start go app inside docker container
+
+1. change `DB_HOST` variable to mysql service
+
+```
+# .env
+DB_HOST=mysql
+```
+
+2. start application container
+
+```
+docker compose up -d app
 ```
